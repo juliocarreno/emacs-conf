@@ -98,12 +98,18 @@
   (add-hook 'after-init-hook 'global-company-mode)
   :custom
   (company-tooltip-limit 5)
-  (company-idle-delay 0.0)
+  (company-idle-delay 0.2)
   (company-minimum-prefix-length 3)
   (company-selection-wrap-around t)
   (company-require-match 'never)
+  (company-show-number t)
   :config
   (global-company-mode t))
+
+(add-to-list 'company-backends #'company-tabnine)
+
+;; Tabnine
+(use-package company-tabnine :ensure t)
 
 ;; Json Mode
 (use-package json-mode
@@ -147,6 +153,33 @@
   :config
   (dashboard-setup-startup-hook))
 
+;; Ox reveal
+(use-package ox-reveal :ensure t)
+
+;; Org tree slide for presentation
+(defun efs/presentation-setup ()
+  ;; Hide the mode line
+  (hide-mode-line-mode 1)
+  ;; Display images inline
+  (org-display-inline-images)
+  ;; Scale the text
+  (setq text-scale-mode-amount 3)
+  (text-scale-mode 1))
+
+(defun efs/presentation-end ()
+  ;; Show the mode line again
+  (hide-mode-line-mode 0))
+
+(use-package org-tree-slide
+  :ensure t
+  :hook ((org-tree-slide-play . efs/presentation-setup)
+	 (org-tree-slide-stop . efs/presentation-end))
+  :custom
+  (org-image-actual-width nil)
+  (org-tree-slide-slide-in-effect nil)
+  (org-tree-slide-header t)
+  (org-tree-slide-breadcrumbs " // "))
+
 ;; --------------------------------------------------
 ;; ------------- Enhancements -----------------------
 ;; --------------------------------------------------
@@ -186,7 +219,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (magit dashboard json-mode prettier-js vterm yaml-mode yaml writegood-mode web-mode use-package phpunit phps-mode php-mode org-tree-slide ob-browser markdown-preview-mode lsp-ui lsp-tailwindcss lsp-latex lsp-docker js2-mode ivy-rich helm-projectile gruvbox-theme go-mode flycheck exec-path-from-shell evil-visual-mark-mode dap-mode company cargo-mode auto-complete all-the-icons-ivy))))
+    (company-tabnine magit dashboard json-mode prettier-js vterm yaml-mode yaml writegood-mode web-mode use-package phpunit phps-mode php-mode org-tree-slide ob-browser markdown-preview-mode lsp-ui lsp-tailwindcss lsp-latex lsp-docker js2-mode ivy-rich helm-projectile gruvbox-theme go-mode flycheck exec-path-from-shell evil-visual-mark-mode dap-mode company cargo-mode auto-complete all-the-icons-ivy))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
