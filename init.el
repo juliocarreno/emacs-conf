@@ -29,7 +29,32 @@
 
 ;; Org mode
 (use-package org
-  :ensure t)
+  :ensure t
+  :config
+  (progn
+    (global-set-key (kbd "C-c a") 'org-agenda)
+    (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))))
+
+;; (use-package org-indent
+;;   :ensure t
+;;   :diminish
+;;   :custom
+;;   (org-indent-indentation-per-level 4))
+
+;; (use-package org-agenda
+;;   :ensure t 
+;;   :after org
+;;   :bind
+;;   ("C-c a" . org-agenda)
+;;   :custom
+;;   (org-agenda-include-diary t)
+;;   (org-agenda-prefix-format '((agenda . "%i %-12:c%?-12t% s")
+;; 			      ;; Indent todo items by level to show nesting
+;; 			      (todo . " %i %-12:c%1")
+;; 			      (tags . " %i %-12:c")
+;; 			      (search . " %i %-12:c")))
+;;   (org-agenda-start-on-weekday nil))
+
 
 ;; Gruvbox theme
 (use-package gruvbox-theme
@@ -115,23 +140,69 @@
 (use-package json-mode
   :ensure t)
 
+;; Dictionary
+(use-package dictionary
+  :ensure t
+  :defer t)
+
 ;; Web mode
 (use-package web-mode
   :ensure t
   :mode (("\\.js\\'" . web-mode)
 	 ("\\.jsx\\'" . web-mode)
 	 ("\\.ts\\'" . web-mode)
-	 ("\\.html\\'" . web-mode))
+	 ("\\.html\\'" . web-mode)
+	 ("\\.twig\\'" . web-mode))
   :commands web-mode
   :config
-  (setq web-mode-markup-indent-offset 4)
-  (setq web-mode-code-indent-offset 4)
-  (setq web-mode-css-indent-offset 4))
+  (setq web-mode-attr-indent-offset 4
+	web-mode-code-indent-offset 4
+	web-mode-css-indent-offset 4
+	web-mode-indent-style 4
+	web-mode-markup-indent-offset 4
+	web-mode-sql-indent-offset 4)
+  (setq web-mode-ac-sources-alist
+	'(("php" . (ac-source-php-extras
+		    ac-source-yasnippet
+		    ac-source-gtags
+		    ac-source-abbrev
+		    ac-source-dictionary
+		    ac-source-words-in-same-mode-buffers))
+	  ("css" . (ac-source-css-property
+		    ac-source-abbrev
+		    ac-source-dictionary
+		    ac-source-words-in-same-mode-buffers))))
+  (add-hook 'web-mode-hook
+	    (lambda()
+	      (setq web-mode-style-padding 4)
+	      (yas-minor-mode t)
+	      (emmet-mode)
+	      (flycheck-add-mode 'html-tidy 'web-mode)
+	      (flycheck-mode)))
+  (add-hook 'web-mode-before-auto-complete-hooks
+	    '(lambda()
+	       (let ((web-mode-cur-language (web-mode-language-at-pos)))
+		 (if (string= web-mode-cur-language "php")
+		     (yas-activate-extra-mode 'php-mode)
+		   (yas-deactivate-extra-mode 'php-mode))
+		 (if (string= web-mode-cur-language "css")
+		     (setq emmet-use-css-transform t)
+		   (setq emmet-use-css-transform nil))))))
+
+;; Flycheck
+(use-package flycheck
+  :ensure t
+  :commands flycheck-mode)
 
 ;; Magit - Source control for git
 (use-package magit
   :ensure t
-  :bind (("C-x g" . magit-status)))
+  :defer t
+  :bind (("C-x g" . magit-status))
+  :config
+  (setq magit-branch-arguments nil)
+  (setq magit-push-always-verify nil)
+  (setq magit-last-seen-setup-instructions "1.4.0"))
 
 ;; Dashboard
 (use-package dashboard
@@ -180,6 +251,22 @@
   (org-tree-slide-header t)
   (org-tree-slide-breadcrumbs " // "))
 
+;; Emmet mode
+(use-package emmet-mode
+  :ensure t
+  :commands emmet-mode
+  :config
+  (add-hook 'emmet-mode-hook
+	    (lambda()
+	      (evil-define-key 'insert emmet-mode-keymap (kbd "C-S-l") 'emmet-next-edit-point)
+	      (evil-define-key 'insert emmet-mode-keymap (kbd "C-S-h") 'emmet-prev-edit-point))))
+
+;; Yaml mode
+(use-package yaml
+  :ensure t
+  ;; .yaml or .yml
+  :mode "\\(?:\\(?:\\.y\\(?:a?ml\\)\\)\\)\\'")
+
 ;; --------------------------------------------------
 ;; ------------- Enhancements -----------------------
 ;; --------------------------------------------------
@@ -217,9 +304,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-agenda-files (quote ("~/org/work.org")))
  '(package-selected-packages
    (quote
-    (company-tabnine magit dashboard json-mode prettier-js vterm yaml-mode yaml writegood-mode web-mode use-package phpunit phps-mode php-mode org-tree-slide ob-browser markdown-preview-mode lsp-ui lsp-tailwindcss lsp-latex lsp-docker js2-mode ivy-rich helm-projectile gruvbox-theme go-mode flycheck exec-path-from-shell evil-visual-mark-mode dap-mode company cargo-mode auto-complete all-the-icons-ivy))))
+    (org-agenda-property company-tabnine magit dashboard json-mode prettier-js vterm yaml-mode yaml writegood-mode web-mode use-package phpunit phps-mode php-mode org-tree-slide ob-browser markdown-preview-mode lsp-ui lsp-tailwindcss lsp-latex lsp-docker js2-mode ivy-rich helm-projectile gruvbox-theme go-mode flycheck exec-path-from-shell evil-visual-mark-mode dap-mode company cargo-mode auto-complete all-the-icons-ivy))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
